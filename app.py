@@ -2,13 +2,11 @@ import streamlit as st
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-from matplotlib import font_manager
 import math
 import io
 import base64
 import datetime
 from fpdf import FPDF
-from pathlib import Path
 
 # --- Page Configuration ---
 st.set_page_config(
@@ -16,11 +14,6 @@ st.set_page_config(
     page_icon="💨",
     layout="wide"
 )
-
-# --- Path Configuration (สำคัญ) ---
-# สร้างที่อยู่เต็มของไฟล์ฟอนต์เพื่อความแน่นอน
-SCRIPT_DIR = Path(__file__).resolve().parent
-FONT_PATH = SCRIPT_DIR / "THSarabunNew.ttf"
 
 # --- Core Simulation Logic ---
 def estimate_k(temp_c, ph, wq_factor):
@@ -64,23 +57,16 @@ def remove_scenario(index):
     else:
         st.toast("Cannot remove the last scenario.", icon="⚠️")
 
-# --- Report Generation ---
+# --- Report Generation (English Version) ---
 class PDF(FPDF):
     def header(self):
-        try:
-            self.add_font('THSarabunNew', '', str(FONT_PATH), uni=True)
-            self.set_font('THSarabunNew', '', 16)
-        except RuntimeError:
-            self.set_font('Arial', 'B', 16)
+        self.set_font('Arial', 'B', 16)
         self.cell(0, 10, 'Ozone Dynamics Simulation Report', 0, 1, 'C')
         self.ln(5)
 
     def footer(self):
         self.set_y(-15)
-        try:
-            self.set_font('THSarabunNew', '', 8)
-        except RuntimeError:
-            self.set_font('Arial', 'I', 8)
+        self.set_font('Arial', 'I', 8)
         self.cell(0, 10, f'Page {self.page_no()}', 0, 0, 'C')
 
 def generate_pdf_report(fig, table_df):
@@ -93,17 +79,10 @@ def generate_pdf_report(fig, table_df):
 
     pdf.ln(105) 
     
-    try:
-        pdf.set_font('THSarabunNew', '', 12)
-    except RuntimeError:
-        pdf.set_font('Arial', '', 12)
+    pdf.set_font('Arial', '', 12)
     pdf.cell(0, 10, 'Scenario Summary', 0, 1, 'L')
     
-    try:
-        pdf.set_font('THSarabunNew', '', 9)
-    except RuntimeError:
-        pdf.set_font('Arial', '', 9)
-        
+    pdf.set_font('Arial', '', 9)
     col_widths = [25, 20, 15, 15, 15, 10, 15, 20, 20]
     for i, header in enumerate(table_df.columns):
         pdf.cell(col_widths[i], 8, header, 1, 0, 'C')
@@ -130,10 +109,10 @@ def generate_html_report(fig, table_df):
 
 # --- Main App UI ---
 st.title("💨 Ozone Dynamics Explorer")
-st.markdown("จำลองความเข้มข้นของโอโซนในน้ำตามเวลา พร้อมเปรียบเทียบปัจจัยต่างๆ")
+st.markdown("Ozone concentration simulation over time with various factors.")
 
 with st.sidebar:
-    st.header("⚙️ ควบคุม Scenario")
+    st.header("⚙️ Scenario Controls")
     st.button("➕ Add Scenario", on_click=add_scenario, use_container_width=True)
     st.markdown("---")
     for i, s in enumerate(st.session_state.scenarios):
@@ -167,7 +146,7 @@ if table_data_list:
     st.dataframe(summary_df, use_container_width=True, hide_index=True)
 
     st.divider()
-    st.subheader("⬇️ ส่งออกรายงาน (Export Report)")
+    st.subheader("⬇️ Export Report")
     
     fig, ax = plt.subplots(figsize=(10, 6))
     for col in combined_chart_df.columns:
@@ -188,17 +167,17 @@ if table_data_list:
     with col2:
         st.download_button(label="📕 Export to PDF", data=pdf_content, file_name="ozone_report.pdf", mime="application/pdf", use_container_width=True)
 
-with st.expander("📖 ทฤษฎีและการคำนวณ (Ozone Decay Theory)"):
+with st.expander("📖 Ozone Decay Theory"):
     st.markdown("""
-    โอโซน (O₃) ในน้ำจะเกิดกระบวนการเติม (Injection) และการสลายตัว (Decay) ไปพร้อมๆ กัน
+    Ozone (O₃) in water simultaneously undergoes injection and decay.
 
-    **1. ช่วงเติมโอโซน (พร้อมการสลายตัว)**
-    - การเปลี่ยนแปลงความเข้มข้น: `dC/dt = R - kC`
-    - ความเข้มข้น ณ เวลา t: **`C(t) = (R/k) * (1 - e^(-kt))`**
+    **1. INJECTION PHASE (with decay)**
+    - Concentration change: `dC/dt = R - kC`
+    - Concentration at time t: **`C(t) = (R/k) * (1 - e^(-kt))`**
 
-    **2. ช่วงสลายตัว (หลังหยุดเติม)**
-    - การเปลี่ยนแปลงความเข้มข้น: `dC/dt = -kC`
-    - ความเข้มข้น ณ เวลา t: **`C(t) = C_peak * e^(-k * (t - t_fill_end))`**
+    **2. DECAY PHASE (injection stops)**
+    - Concentration change: `dC/dt = -kC`
+    - Concentration at time t: **`C(t) = C_peak * e^(-k * (t - t_fill_end))`**
     
-    ... (เนื้อหาทฤษฎีเหมือนเดิม) ...
+    ... (Theory content in English) ...
     """)
