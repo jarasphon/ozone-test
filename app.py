@@ -8,7 +8,7 @@ import io
 import base64
 import datetime
 from fpdf import FPDF
-from pathlib import Path # <<< เพิ่มการ import นี้
+from pathlib import Path
 
 # --- Page Configuration ---
 st.set_page_config(
@@ -18,7 +18,7 @@ st.set_page_config(
 )
 
 # --- Path Configuration (สำคัญ) ---
-# สร้างที่อยู่เต็มของไฟล์ฟอนต์
+# สร้างที่อยู่เต็มของไฟล์ฟอนต์เพื่อความแน่นอน
 SCRIPT_DIR = Path(__file__).resolve().parent
 FONT_PATH = SCRIPT_DIR / "THSarabunNew.ttf"
 
@@ -68,10 +68,10 @@ def remove_scenario(index):
 class PDF(FPDF):
     def header(self):
         try:
-            # <<< แก้ไขให้ใช้ที่อยู่เต็มของไฟล์ >>>
             self.add_font('THSarabunNew', '', str(FONT_PATH), uni=True)
             self.set_font('THSarabunNew', '', 16)
         except RuntimeError:
+            # Fallback if font file is not found
             self.set_font('Arial', 'B', 16)
         self.cell(0, 10, 'Ozone Dynamics Simulation Report', 0, 1, 'C')
         self.ln(5)
