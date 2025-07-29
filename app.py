@@ -71,7 +71,6 @@ class PDF(FPDF):
             self.add_font('THSarabunNew', '', str(FONT_PATH), uni=True)
             self.set_font('THSarabunNew', '', 16)
         except RuntimeError:
-            # Fallback if font file is not found
             self.set_font('Arial', 'B', 16)
         self.cell(0, 10, 'Ozone Dynamics Simulation Report', 0, 1, 'C')
         self.ln(5)
